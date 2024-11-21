@@ -1,0 +1,121 @@
+/* styles.css */
+
+body,
+html {
+  margin: 0;
+  padding: 0;
+  font-family: 'Arial', sans-serif;
+  height: 100%;
+}
+
+.ui-background {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(135deg, rgb(16, 107, 77) 35%, rgb(37, 2, 2) 100%, rgba(0,212,255,1) 100%);
+  color: #fff;
+}
+
+.ui-container {
+  flex-grow: 1;
+  padding: 20px;
+}
+
+.ui-header {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.ui-header h1 {
+  margin: 0;
+  font-size: 2em;
+}
+
+.ui-header p {
+  margin: 5px 0;
+}
+
+.my-info {
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+  background-color: rgba(0, 0, 0, 0.2);
+  padding: 15px;
+  border-radius: 10px;
+  margin-bottom: 20px;
+  text-align: center;
+}
+.hearts{
+  text-align: center;
+  
+}
+
+.my-info h2 {
+  margin-top: 0;
+}
+
+
+.gameRules{
+  color: white;
+  
+  
+  background-color: rgba(56, 45, 45, 1);
+  width: 100px;
+  height: 30px;
+
+
+  
+}
+
+
+
+.avatar{
+    width: 50px;
+    height: 50px;
+    align-items: center;
+}
+
+.players-list {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  
+  background-color: rgba(0, 0, 0, 0.2);
+  padding: 15px;
+  border-radius: 10px;
+  
+}
+
+.players-list h2 {
+  margin-top: 0;
+}
+
+.players-list ul {
+  list-style: none;
+  padding: 0;
+}
+
+.players-list li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: rgba(255, 255, 255, 0.1);
+  padding: 10px;
+  margin-bottom: 10px;
+  border-radius: 5px;
+}
+
+.players-list button {
+  background-color: #1E90FF;
+  color: #fff;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.players-list button:hover {
+  background-color: #1C86EE;
+}
+
+

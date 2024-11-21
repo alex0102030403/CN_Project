@@ -1,0 +1,12 @@
+.player-container{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    width: 50%;
+    gap: 10px;
+    
+}
+
+.players-text{
+    text-align: center;
+}
