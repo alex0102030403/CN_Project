@@ -5,8 +5,8 @@ import React, { useState, useEffect, useRef } from 'react';
 
 const GameEngineContext = React.createContext();
 
-const TIME_PHASE_TALK = 60;
-const TIME_PHASE_BATTLE = 15;
+const TIME_PHASE_TALK = 2;
+const TIME_PHASE_BATTLE = 6;
 const TIME_PHASE_VOTE = 5;
 const TIME_PHASE_END = 3;
 
@@ -41,6 +41,11 @@ export const GameEngineProvider = ({ children }) => {
     const [blueTeam, setBlueTeam] = useMultiplayerState('blueTeam', []);
 
     const [chatMessages, setChatMessages] = useMultiplayerState('chatMessages', []);
+
+    //Each player will have the action to chose one player to chat with, when chose they will have a private chat, the other person if slower will have to wait for the other to chose him to chat
+
+    const [playersChatList, setPlayersChatList] = useMultiplayerState('playersChatList', []);
+    const [playerMessages, setPlayerMessages] = useMultiplayerState('playerMessages', []);
 
     const players = usePlayersList(true);
     //players.sort((a, b) => a.id - b.id);
@@ -106,6 +111,8 @@ export const GameEngineProvider = ({ children }) => {
         
         if( isHost() ) {
 
+            let playersChat = [];
+
             players.sort(() => Math.random() - 0.5);
             ONE_TIME = 1;
             console.log('Starting game');
@@ -119,44 +126,61 @@ export const GameEngineProvider = ({ children }) => {
             setVotesCount(0, true);
             setActionSuccess(true, true);
             setChatMessages([], true);
-            setRoleListBlue(['Soldier', 'Spy', 'Commander'], true);
-            setRoleListRed(['Soldier', 'Spy', 'Commander'], true);
+            // setRoleListBlue(['Soldier', 'Spy', 'Commander'], true);
+            // setRoleListRed(['Soldier', 'Spy', 'Commander'], true);
+            //the structure for the chat will be Player1 : Player2
+            //Or Player1 : None
+
+           
+
+            for(let i = 0; i < players.length; i++) {
+                let name = players[i]?.state?.profile?.name;
+                playersChat.push({
+                    name: players[i]?.state?.profile?.name || "none", // Use the extracted name or fallback to "unknown"
+                    chatPartner: "none" // Default value for chatPartner
+                });
+            }
+
+            setPlayersChatList(playersChat, true);
+            
 
 
-
-        
             let redTeamPlayers = [];
             let blueTeamPlayers = [];
 
         if(ONE_TIME == 1) {
+
+            let rolelistR = ['Soldier', 'Spy', 'Commander'];
+            let rolelistB = ['Soldier', 'Spy', 'Commander'];
         
         for(let i = 0; i < players.length; i++) {
         if(i % 2 == 0) {
-            let rolelist = roleListRed;
-            let role = rolelist[randInt(0, rolelist.length - 1)];
-            rolelist = rolelist.filter(r => r != role);
-            setRoleListRed(rolelist, true);
+            
+            let role = rolelistR[randInt(0, rolelistR.length - 1)];
+            rolelistR = rolelistR.filter(r => r != role);
+            console.log(rolelistR);
+            setRoleListRed(rolelistR, true);
             redTeamPlayers.push({player: players[i], role: role, isAlive: true});
             players[i].setState("team", "red", true);
             players[i].setState("role", role, true);
             players[i].setState("isAlive", true , true);
             players[i].setState("message", "", true);   
-            players[i].setState("health", 10, true);
+            players[i].setState("health", 5, true);
             players[i].setState("totalDamage", 0, true);
             players[i].setState("attacks", 0, true);    
 
             }
         else {
-                let rolelist = roleListBlue;
-                let role = rolelist[randInt(0, rolelist.length - 1)];
-                rolelist = rolelist.filter(r => r != role);
-                setRoleListBlue(rolelist, true);
+                
+                let role = rolelistB[randInt(0, rolelistB.length - 1)];
+                rolelistB = rolelistB.filter(r => r != role);
+                setRoleListBlue(rolelistB, true);
                 blueTeamPlayers.push({player: players[i], role: role, isAlive: true});
                 players[i].setState("team", "blue", true);
                 players[i].setState("role", role, true);
                 players[i].setState("isAlive", true , true);
                 players[i].setState("message", "", true);
-                players[i].setState("health", 10, true);
+                players[i].setState("health", 5, true);
                 players[i].setState("totalDamage", 0, true);
                 players[i].setState("attacks", 0, true);
 
@@ -169,13 +193,7 @@ export const GameEngineProvider = ({ children }) => {
         console.log("TEAM INITIALIZED");
         }
 
-        players.forEach(player => {
-
-            onPlayerJoin(() => {
-                console.log('Player joined:', player.id);
-                
-            });
-        });
+        
     }
     
     }   
@@ -198,6 +216,10 @@ export const GameEngineProvider = ({ children }) => {
         gameEndVar,
         winnerTeam,
         startGame,
+        playersChatList,
+        playerMessages,
+        setPlayersChatList,
+        setPlayerMessages,
     }
 
     useEffect(() => {

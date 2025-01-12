@@ -26,9 +26,14 @@ export const UI = () => {
   };
 
     const {phase, timer, players, round, actionSucces, blueTeam, redTeam, externSetRedTeam, externSetBlueTeam
-      , chatMessages, setChatMessages, gameEnd, gameEndVar, winnerTeam, startGame} = useGameEngine();
+      , chatMessages, setChatMessages, gameEnd, gameEndVar, winnerTeam, startGame, playerMessages,
+      playersChatList, setPlayersChatList
+    
+      } = useGameEngine();
 
     const me = myPlayer();
+
+    const [myChatPartner, setMyChatPartner] = useState("none");
 
     
 
@@ -55,12 +60,14 @@ export const UI = () => {
     }
     
     const sendMessage = () => {
+       
+      console.log(playersChatList);
       if (input.trim()) {
  
         setMessages([...messages, { text: input, sender: 'You' }]); // Add your message to the list
         setChatMessages([...chatMessages, { text: input, sender: me?.state?.profile?.name }]); // Add your message to the list
         setInput(''); // Clear the input field
-  
+
         // Simulating a response message
         
       }
@@ -68,6 +75,11 @@ export const UI = () => {
   
     
     useEffect(() => {
+
+      
+
+      
+
       for(let i = 0; i < redTeam.length; i++) {
         if(redTeam[i].player.id == me.id) {
           
@@ -95,6 +107,15 @@ export const UI = () => {
 
     if(phase == 'talk')
     {
+      let newPlayersChat = [];
+      for(let i = 0; i < players.length; i++) {
+        newPlayersChat.push({
+          name: players[i]?.state?.profile?.name || "none", // Use the extracted name or fallback to "unknown"
+          chatPartner: "none" // Default value for chatPartner
+        });
+      }
+
+        setPlayersChatList(newPlayersChat, true);
         setChatMessages([]);
         setMessages([]);
     }
@@ -121,10 +142,14 @@ export const UI = () => {
 
       let myRole = '';
       let myTeam = '';
+      let myHealth = '';
+      let enemyHealth = '';
       for(let i = 0; i < players.length; i++) {
           if(players[i].id == me.id) {
               myRole = players[i].getState('role');
               myTeam = players[i].getState('team');
+              myHealth = players[i].getState('health');
+              enemyHealth = player.getState('health');
           }
       }
 
@@ -151,7 +176,13 @@ export const UI = () => {
 
       if(myRole == 'Soldier') {
           if(playerRole == 'Soldier') {
+            if(myHealth > enemyHealth) {
+              isKillable = true;
+            }else if(myHealth == enemyHealth) {
               isKillable = false;
+            }else{
+              isKillable = false;
+            }
           }else if(playerRole == 'Spy' && (playerTeam != myTeam)) {
               isKillable = true;
           }else if(playerRole == 'Commander') {
@@ -163,7 +194,13 @@ export const UI = () => {
 
       if(myRole == 'Spy') {
         if(playerRole == 'Spy') {
-          isKillable = false;
+          if(myHealth > enemyHealth) {
+            isKillable = true;
+          }else if(myHealth == enemyHealth) {
+            isKillable = false;
+          }else{
+            isKillable = false;
+          }
         }else if(playerRole == 'Soldier') {
           isKillable = false;
         }else if(playerRole == 'Commander' && (playerTeam != myTeam)) {
@@ -175,7 +212,13 @@ export const UI = () => {
 
       if(myRole == 'Commander') {
         if(playerRole == 'Commander') {
-          isKillable = false;
+          if(myHealth > enemyHealth) {
+            isKillable = true;
+          }else if(myHealth == enemyHealth) {
+            isKillable = false;
+          }else{
+            isKillable = false;
+          }
         }else if(playerRole == 'Spy') {
           isKillable = false;
         }else if(playerRole == 'Soldier' && (playerTeam != myTeam)) {
@@ -245,6 +288,37 @@ export const UI = () => {
           }
       }
     
+
+    }
+
+    const setChatPartner = (player) => {
+        let thisGuy = player?.state?.profile?.name;
+        
+        let newPlayersChatList = [];
+
+        for(let i = 0; i < playersChatList.length; i++) {
+            if(playersChatList[i].name === me?.state?.profile?.name) {
+                newPlayersChatList.push({
+                    name: me?.state?.profile?.name,
+                    chatPartner: thisGuy
+                });
+            }else if(playersChatList[i].name === thisGuy) {
+                newPlayersChatList.push({
+                    name: thisGuy,
+                    chatPartner: me?.state?.profile?.name
+                });
+            }else {
+                newPlayersChatList.push(playersChatList[i]);
+            }
+        }
+
+        if(playersChatList.find((entry) => entry.name === player?.state?.profile?.name)?.chatPartner === "none") {
+          setPlayersChatList(newPlayersChatList, true);
+        }else{
+          alert("That player is already in a chat");
+        }
+
+        
 
     }
 
@@ -323,6 +397,7 @@ export const UI = () => {
               <h1>Phase: {phase.charAt(0).toUpperCase() + phase.slice(1)}</h1>
               <p>Time Left: {timer}</p>
               <p>Round: {round}</p>
+              <button onClick={() => startGame()}>Create New Game</button>
             </header>
     
             <section className="my-info">
@@ -344,19 +419,24 @@ export const UI = () => {
             </>
             )}
           
-            {gameEndVar === false && phase === 'talk' && isAlive && (
+            {gameEndVar === false && phase === 'talk' && isAlive && playersChatList.find((entry) => entry.name === me?.state?.profile?.name)?.chatPartner !== "none" && (
+              
               <section className="players-list">
                 <div class="messages">
-                <h2>Chat</h2>
-                
+                <h2>You are in a chat with {playersChatList.find((entry) => entry.name === me?.state?.profile?.name)?.chatPartner}</h2>
+              
         <div>
       <div style={{ maxHeight: '200px', overflowY: 'auto', marginBottom: '10px' }}>
-        {chatMessages.map((message, index) => (
+        
+       {chatMessages
+          .filter((message) => message.sender === playersChatList.find((entry) => entry.name === me?.state?.profile?.name)?.chatPartner || message.sender === me?.state?.profile?.name) // Filter messages by sender
+          .map((message, index) => (
           <div key={index}>
             <strong>{message.sender}: </strong>
             <span>{message.text}</span>
           </div>
         ))}
+
 
         </div>
         </div>
@@ -386,6 +466,27 @@ export const UI = () => {
 
               </section>
             )}
+
+{gameEndVar === false && phase === 'talk' && isAlive && playersChatList.find((entry) => entry.name === me?.state?.profile?.name)?.chatPartner === "none" && (
+              
+              <section className="players-list">
+                
+              {players.filter(player => player.id != me.id).map((player) => (
+                <div className="player-container">
+                  <li key={player.id}>
+                    <span>{player?.state?.profile?.name}</span>
+                    <button onClick={() => setChatPartner(player)}>Chat</button>
+                  </li>
+                </div>
+                ))  
+              }
+          
+
+              </section>
+            )}
+
+
+
         {gameEndVar === false && phase === 'action' && isAlive && (
               <section className="players-list">
                 <h2>Players</h2>
